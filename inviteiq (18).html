@@ -1,0 +1,1233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>InviteIQ</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#0d0d0d; --surface:#161616; --surface2:#1e1e1e; --border:#2a2a2a;
+    --gold:#c9a84c; --gold-light:#e8c87a; --text:#e8e4dc; --muted:#6b6560;
+    --green:#4caf7d; --red:#c94c4c; --blue:#4c8ec9; --purple:#9b7fd4;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;min-height:100vh;font-size:13px;}
+  header{border-bottom:1px solid var(--border);padding:22px 40px;display:flex;align-items:baseline;gap:20px;background:var(--surface);position:sticky;top:0;z-index:100;}
+  header h1{font-family:'Playfair Display',serif;font-size:26px;color:var(--gold);letter-spacing:-0.5px;}
+  header span{color:var(--muted);font-size:11px;letter-spacing:2px;text-transform:uppercase;}
+  .tabs{display:flex;padding:0 40px;background:var(--surface);border-bottom:1px solid var(--border);}
+  .tab{padding:13px 22px;cursor:pointer;color:var(--muted);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;border-bottom:2px solid transparent;transition:all .2s;user-select:none;}
+  .tab:hover{color:var(--text);}
+  .tab.active{color:var(--gold);border-bottom-color:var(--gold);}
+  .content{padding:28px 40px;max-width:1300px;}
+  .panel{display:none;}
+  .panel.active{display:block;}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:2px;padding:22px;margin-bottom:18px;}
+  .card-title{font-family:'Playfair Display',serif;font-size:15px;color:var(--gold);margin-bottom:18px;padding-bottom:11px;border-bottom:1px solid var(--border);}
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  .form-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;}
+  .form-group{display:flex;flex-direction:column;gap:5px;}
+  .form-group label{color:var(--muted);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;}
+  .form-group input,.form-group select{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:9px 11px;font-family:'DM Mono',monospace;font-size:13px;outline:none;transition:border-color .2s;border-radius:1px;width:100%;}
+  .form-group input:focus,.form-group select:focus{border-color:var(--gold);}
+  .form-group input[type="color"]{padding:3px 5px;height:36px;cursor:pointer;}
+  .btn{padding:9px 20px;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;border:none;border-radius:1px;transition:all .2s;}
+  .btn-gold{background:var(--gold);color:#0d0d0d;font-weight:500;}
+  .btn-gold:hover{background:var(--gold-light);}
+  .btn-outline{background:transparent;border:1px solid var(--border);color:var(--muted);}
+  .btn-outline:hover{border-color:var(--gold);color:var(--gold);}
+  .btn-danger{background:transparent;border:1px solid var(--border);color:var(--red);}
+  .btn-danger:hover{background:var(--red);color:#fff;border-color:var(--red);}
+  .btn-sm{padding:5px 13px;font-size:10px;}
+  .btn-xs{padding:3px 9px;font-size:9px;}
+  table{width:100%;border-collapse:collapse;}
+  th{text-align:left;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);padding:8px 12px;border-bottom:1px solid var(--border);}
+  td{padding:11px 12px;border-bottom:1px solid var(--border);vertical-align:middle;}
+  tr:last-child td{border-bottom:none;}
+  tr:hover td{background:var(--surface2);}
+  .empty{color:var(--muted);text-align:center;padding:36px;font-size:11px;letter-spacing:1px;}
+  .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px;}
+  .stat-box{background:var(--surface);border:1px solid var(--border);padding:18px;text-align:center;}
+  .stat-num{font-family:'Playfair Display',serif;font-size:30px;color:var(--gold);}
+  .stat-label{color:var(--muted);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;margin-top:4px;}
+  .tag{display:inline-block;padding:3px 8px;font-size:9px;letter-spacing:1px;text-transform:uppercase;border-radius:1px;margin:2px;}
+  .tag-f2f{background:rgba(76,175,125,0.15);color:var(--green);border:1px solid rgba(76,175,125,0.3);}
+  .tag-zoom{background:rgba(76,142,201,0.15);color:var(--blue);border:1px solid rgba(76,142,201,0.3);}
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.78);display:none;align-items:center;justify-content:center;z-index:1000;}
+  .modal-overlay.open{display:flex;}
+  .modal{background:var(--surface);border:1px solid var(--border);padding:30px;width:640px;max-width:95vw;max-height:92vh;overflow-y:auto;}
+  .modal-title{font-family:'Playfair Display',serif;color:var(--gold);font-size:19px;margin-bottom:18px;}
+  .modal-actions{margin-top:18px;display:flex;gap:10px;justify-content:flex-end;}
+  .section-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;}
+  .section-title{font-family:'Playfair Display',serif;font-size:21px;color:var(--text);}
+  /* Days badge */
+  .days-badge{display:inline-block;padding:4px 10px;font-size:10px;letter-spacing:1px;border-radius:1px;white-space:nowrap;}
+  .days-never{background:rgba(201,168,76,0.15);color:var(--gold);border:1px solid rgba(201,168,76,0.3);}
+  .days-long{background:rgba(201,76,76,0.12);color:#e08080;border:1px solid rgba(201,76,76,0.25);}
+  .days-mid{background:rgba(201,168,76,0.1);color:#c9b06a;border:1px solid rgba(201,168,76,0.2);}
+  .days-recent{background:rgba(76,175,125,0.1);color:#6dc99a;border:1px solid rgba(76,175,125,0.2);}
+  /* Rank */
+  .rank-num{font-family:'Playfair Display',serif;font-size:17px;color:var(--gold);}
+  .rank-num.top{color:var(--muted);}
+  .highlight-row td{background:rgba(201,168,76,0.04);}
+  .highlight-row td:first-child{border-left:2px solid var(--gold);}
+  /* Attendance list in guest detail */
+  .att-pill{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:1px;margin:3px;font-size:10px;}
+  /* Settings */
+  .settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+  .cat-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);}
+  .cat-row:last-child{border-bottom:none;}
+  .cat-swatch{width:13px;height:13px;border-radius:2px;flex-shrink:0;}
+  .cat-name-input{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:6px 10px;font-family:'DM Mono',monospace;font-size:12px;outline:none;flex:1;}
+  .cat-name-input:focus{border-color:var(--gold);}
+  .info-note{background:rgba(201,168,76,0.07);border:1px solid rgba(201,168,76,0.2);padding:11px 14px;font-size:11px;color:var(--muted);line-height:1.8;margin-top:11px;}
+  .info-note strong{color:var(--gold);}
+  /* Guest history table inside modal */
+  .hist-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border);font-size:12px;}
+  .hist-row:last-child{border-bottom:none;}
+  /* Invite filter bar */
+  .filter-bar{display:flex;gap:14px;align-items:flex-end;flex-wrap:wrap;margin-bottom:22px;}
+  .filter-bar .form-group{min-width:190px;}
+  /* Clickable guest name */
+  .link{cursor:pointer;color:var(--gold);text-decoration:underline;text-decoration-color:rgba(201,168,76,0.4);}
+  .link:hover{text-decoration-color:var(--gold);}
+  /* Invite type toggle buttons */
+  .inv-type-btn{padding:7px 16px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;border:1px solid var(--border);border-radius:1px;background:transparent;color:var(--muted);transition:all .15s;}
+  .inv-type-btn.active{border-color:var(--gold);background:rgba(201,168,76,0.12);color:var(--gold);}
+  .inv-type-btn:hover:not(.active){border-color:var(--text);color:var(--text);}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>InviteIQ</h1>
+  <span>Event Intelligence Platform</span>
+</header>
+
+<div class="tabs">
+  <div class="tab active"  onclick="showTab('dashboard',this)">Dashboard</div>
+  <div class="tab" onclick="showTab('guests',this)">Guests</div>
+  <div class="tab" onclick="showTab('events',this)">Events</div>
+  <div class="tab" onclick="showTab('invite',this)">Invite Planner</div>
+  <div class="tab" onclick="showTab('settings',this)">⚙ Settings</div>
+</div>
+
+<div class="content">
+
+  <!-- DASHBOARD -->
+  <div class="panel active" id="panel-dashboard">
+    <div class="stats-row" id="stats-row"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;">
+      <div class="card"><div class="card-title">Most Overdue Guests (All Categories)</div><div id="dash-overdue"></div></div>
+      <div class="card"><div class="card-title">Recent Events</div><div id="dash-recent"></div></div>
+    </div>
+  </div>
+
+  <!-- GUESTS -->
+  <div class="panel" id="panel-guests">
+    <div class="section-header">
+      <div class="section-title">Guest Registry</div>
+      <button class="btn btn-gold" onclick="openAddGuest()">+ Add Guest</button>
+    </div>
+    <!-- FILTER BAR -->
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;margin-bottom:12px;">
+      <div class="form-group" style="flex:2;min-width:160px;">
+        <label>Search</label>
+        <input type="text" id="gf-search" placeholder="Name or email…" oninput="renderGuests()">
+      </div>
+      <div class="form-group" style="flex:1;min-width:80px;">
+        <label>Min Age</label>
+        <input type="number" id="gf-age-min" placeholder="Min" min="0" max="130" oninput="renderGuests()">
+      </div>
+      <div class="form-group" style="flex:1;min-width:80px;">
+        <label>Max Age</label>
+        <input type="number" id="gf-age-max" placeholder="Max" min="0" max="130" oninput="renderGuests()">
+      </div>
+      <div class="form-group" style="flex:1;min-width:130px;">
+        <label>Last Attended</label>
+        <select id="gf-last" onchange="renderGuests()">
+          <option value="">Any time</option>
+          <option value="30">30 days</option>
+          <option value="90">90 days</option>
+          <option value="180">180 days</option>
+          <option value="365">1 year</option>
+          <option value="365+">Over 1 year</option>
+          <option value="never">Never</option>
+        </select>
+      </div>
+      <div class="form-group" style="flex:1;min-width:80px;">
+        <label>Min Events</label>
+        <input type="number" id="gf-ev-min" placeholder="Min" min="0" oninput="renderGuests()">
+      </div>
+      <div class="form-group" style="flex:1;min-width:110px;">
+        <label>Marital Status</label>
+        <select id="gf-marital" onchange="renderGuests()">
+          <option value="">Any</option>
+          <option value="Single">Single</option>
+          <option value="Married">Married</option>
+          <option value="unset">—</option>
+        </select>
+      </div>
+      <div style="display:flex;gap:6px;align-self:flex-end;padding-bottom:1px;">
+        <button class="btn btn-outline btn-sm" onclick="clearGuestFilters()">Clear</button>
+        <button class="btn btn-outline btn-sm" id="gf-archived-btn" onclick="toggleShowArchived()">Archived</button>
+      </div>
+    </div>
+    <div id="gf-count" style="color:var(--muted);font-size:11px;letter-spacing:1px;margin-bottom:10px;"></div>
+    <div class="card" style="padding:0;overflow:hidden;">
+      <table>
+        <thead><tr><th id="gh-name" onclick="setGuestSort('name')" style="cursor:pointer;user-select:none;">Name ↕</th><th>Date of Birth</th><th id="gh-age" onclick="setGuestSort('age')" style="cursor:pointer;user-select:none;color:var(--muted);">Age ↕</th><th>Email</th><th>Marital Status</th><th>Category Preferences</th><th>Total Events Attended</th><th id="gh-last" onclick="setGuestSort('last')" style="cursor:pointer;user-select:none;color:var(--muted);">Last Attended ↕</th><th>Notes</th><th></th></tr></thead>
+        <tbody id="guest-tbody"></tbody>
+      </table>
+      <div class="empty" id="guest-empty" style="display:none">No guests match your filters.</div>
+    </div>
+  </div>
+
+  <!-- EVENTS -->
+  <div class="panel" id="panel-events">
+    <div class="section-header">
+      <div class="section-title">Events</div>
+      <button class="btn btn-gold" onclick="openCreateEvent()">+ Create Event</button>
+    </div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;margin-bottom:16px;">
+      <div class="form-group" style="flex:1;min-width:200px;">
+        <label>Filter by Category</label>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px;" id="ev-cat-btns"></div>
+      </div>
+      <button class="btn btn-outline btn-sm" onclick="clearEventFilters()" style="white-space:nowrap;align-self:flex-end;">Clear Filter</button>
+    </div>
+    <div id="ev-count" style="color:var(--muted);font-size:11px;letter-spacing:1px;margin-bottom:10px;"></div>
+    <div class="card" style="padding:0;overflow:hidden;">
+      <table>
+        <thead><tr><th>Event Name</th><th>Category</th><th id="event-date-hdr" onclick="eventSortAsc=!eventSortAsc;renderEvents();" style="cursor:pointer;user-select:none;color:var(--gold);">Date ↓</th><th>Attendees</th><th>F2F</th><th>Zoom</th><th></th></tr></thead>
+        <tbody id="event-tbody"></tbody>
+      </table>
+      <div class="empty" id="event-empty" style="display:none">No events match your filter.</div>
+    </div>
+  </div>
+
+  <!-- INVITE PLANNER -->
+  <div class="panel" id="panel-invite">
+    <div class="section-title" style="margin-bottom:6px;">Invite Planner</div>
+    <p style="color:var(--muted);font-size:11px;letter-spacing:1px;margin-bottom:22px;text-transform:uppercase;">Guests aged 16+ ranked by longest time since attending selected categories</p>
+    <div class="filter-bar">
+      <div class="form-group" style="flex:1;min-width:240px;">
+        <label>Categories <span style="color:var(--muted);font-weight:normal;">(select one or more)</span></label>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px;" id="inv-cat-btns"></div>
+      </div>
+      <div class="form-group">
+        <label>Attendance Type</label>
+        <div style="display:flex;gap:6px;margin-top:2px;" id="inv-type-btns">
+          <button class="inv-type-btn active" data-val="F2F" onclick="toggleInvType('F2F')">F2F</button>
+          <button class="inv-type-btn active" data-val="Zoom" onclick="toggleInvType('Zoom')">Zoom</button>
+        </div>
+      </div>
+      <div class="form-group" style="min-width:80px;">
+        <label>Min Age</label>
+        <input type="number" id="inv-age-min" placeholder="e.g. 18" min="0" max="130" oninput="renderInvite()">
+      </div>
+      <div class="form-group" style="min-width:80px;">
+        <label>Max Age</label>
+        <input type="number" id="inv-age-max" placeholder="e.g. 65" min="0" max="130" oninput="renderInvite()">
+      </div>
+      <div class="form-group" style="min-width:130px;">
+        <label>Marital Status</label>
+        <select id="inv-marital" onchange="renderInvite()">
+          <option value="">Any</option>
+          <option value="Single">Single</option>
+          <option value="Married">Married</option>
+          <option value="unset">Not specified</option>
+        </select>
+      </div>
+      <div class="form-group" style="min-width:160px;">
+        <label>Attendance History</label>
+        <select id="inv-never" onchange="renderInvite()">
+          <option value="">Any</option>
+          <option value="never">Never attended any event</option>
+          <option value="never-cat">Never attended selected categories</option>
+          <option value="attended">Has attended selected categories</option>
+          <option value="attended-any">Has attended any event</option>
+        </select>
+      </div>
+      <div class="form-group" style="min-width:140px;">
+        <label>Sort By</label>
+        <select id="inv-sort" onchange="renderInvite()">
+          <option value="overdue">Days since — most overdue first</option>
+          <option value="overdue-asc">Days since — most recent first</option>
+          <option value="age-asc">Age — youngest first</option>
+          <option value="age-desc">Age — oldest first</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Show</label>
+        <select id="inv-n" onchange="renderInvite()">
+          <option value="0">All</option>
+          <option value="10" selected>Top 10</option>
+          <option value="20">Top 20</option>
+          <option value="50">Top 50</option>
+        </select>
+      </div>
+    </div>
+    <div id="invite-prompt" class="empty" style="display:none">Please select a category above to see ranked guests.</div>
+    <div id="inv-count" style="color:var(--muted);font-size:11px;letter-spacing:1px;margin-bottom:10px;display:none;"></div>
+    <div class="card" id="invite-table-wrap" style="padding:0;overflow:hidden;display:none;">
+      <table>
+        <thead><tr><th style="width:44px;">Rank</th><th>Name</th><th id="ih-age" onclick="setInvSort('age-asc','age-desc')" style="cursor:pointer;user-select:none;color:var(--muted);">Age ↕</th><th>Last Attended This Category</th><th id="ih-days" onclick="setInvSort('overdue','overdue-asc')" style="cursor:pointer;user-select:none;color:var(--gold);">Days Since ↓</th><th>Total Category Events</th><th>Preferred Categories</th></tr></thead>
+        <tbody id="invite-tbody"></tbody>
+      </table>
+      <div class="empty" id="invite-empty" style="display:none">No eligible guests found.</div>
+    </div>
+    <div class="info-note" id="inv-note" style="display:none">
+      <strong>Ranking logic:</strong> Guests aged 16+ only. Sorted by days since their last attendance of this category — those who have <em>never</em> attended this category appear first (highest priority), followed by those who attended longest ago. Attendance type filter applies to the last recorded attendance.
+    </div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div class="panel" id="panel-settings">
+    <div class="section-title" style="margin-bottom:22px;">Settings</div>
+    <div class="settings-grid">
+      <div class="card">
+        <div class="card-title">Event Categories</div>
+        <div id="cat-list"></div>
+        <div style="margin-top:13px;display:flex;gap:10px;align-items:center;">
+          <input type="text" id="new-cat-name" placeholder="New category name…" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:7px 11px;font-family:'DM Mono',monospace;font-size:12px;outline:none;flex:1;">
+          <input type="color" id="new-cat-color" value="#c9a84c" style="width:42px;height:34px;background:var(--surface2);border:1px solid var(--border);cursor:pointer;padding:2px 4px;">
+          <button class="btn btn-outline btn-sm" onclick="addCat()">Add</button>
+        </div>
+        <div class="info-note" style="margin-top:13px;">Renaming a category updates all existing events and guest preferences automatically.</div>
+      </div>
+      <div class="card">
+        <div class="card-title">About Scoring</div>
+        <p style="color:var(--muted);font-size:12px;line-height:1.9;">The Invite Planner uses a simple, transparent rule:<br><br>
+        <span style="color:var(--text);">1.</span> Only guests aged <strong style="color:var(--gold);">16 or over</strong> are included.<br>
+        <span style="color:var(--text);">2.</span> Guests who have <strong style="color:var(--gold);">never attended</strong> the selected category rank highest.<br>
+        <span style="color:var(--text);">3.</span> Remaining guests are ranked by <strong style="color:var(--gold);">days since their last attendance</strong> of that category — longest first.<br>
+        <span style="color:var(--text);">4.</span> No weighting or scoring formulas — just recency.</p>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /content -->
+
+<!-- GUEST MODAL -->
+<div class="modal-overlay" id="modal-guest">
+  <div class="modal">
+    <div class="modal-title" id="mg-title">Add Guest</div>
+    <div class="form-grid">
+      <div class="form-group"><label>First Name</label><input type="text" id="g-fn" placeholder="e.g. Margaret"></div>
+      <div class="form-group"><label>Last Name</label><input type="text" id="g-ln" placeholder="e.g. Hughes"></div>
+      <div class="form-group">
+        <label>Birth Month</label>
+        <select id="g-dob-month">
+          <option value="">— Month —</option>
+          <option value="1">January</option><option value="2">February</option><option value="3">March</option>
+          <option value="4">April</option><option value="5">May</option><option value="6">June</option>
+          <option value="7">July</option><option value="8">August</option><option value="9">September</option>
+          <option value="10">October</option><option value="11">November</option><option value="12">December</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Birth Year</label><input type="number" id="g-dob-year" placeholder="e.g. 1978" min="1900" max="2025"></div>
+      <div class="form-group"><label>Email (optional)</label><input type="email" id="g-email" placeholder="e.g. m@email.com"></div>
+      <div class="form-group">
+        <label>Marital Status</label>
+        <select id="g-marital">
+          <option value="">— Not specified —</option>
+          <option value="Single">Single</option>
+          <option value="Married">Married</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group" style="margin-top:14px;">
+      <label>Category Preferences</label>
+      <div class="checkbox-group" id="g-cats" style="display:flex;flex-wrap:wrap;gap:7px;margin-top:4px;"></div>
+    </div>
+    <div class="form-group" style="margin-top:14px;">
+      <label>Notes</label>
+      <textarea id="g-notes" placeholder="Any notes about this guest…" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:9px 11px;font-family:'DM Mono',monospace;font-size:12px;outline:none;border-radius:1px;width:100%;min-height:80px;resize:vertical;line-height:1.6;" onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='var(--border)'"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('modal-guest')">Cancel</button>
+      <button class="btn btn-gold" onclick="saveGuest()">Save Guest</button>
+    </div>
+  </div>
+</div>
+
+<!-- GUEST HISTORY MODAL -->
+<div class="modal-overlay" id="modal-history">
+  <div class="modal">
+    <div class="modal-title" id="mh-title">Attendance History</div>
+    <div id="mh-body"></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('modal-history')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- CREATE / EDIT EVENT MODAL -->
+<div class="modal-overlay" id="modal-event">
+  <div class="modal">
+    <div class="modal-title" id="me-title">Create Event</div>
+    <div class="form-grid">
+      <div class="form-group"><label>Event Name</label><input type="text" id="e-name" placeholder="e.g. Spring Gala 2025"></div>
+      <div class="form-group"><label>Category</label><select id="e-cat"></select></div>
+      <div class="form-group"><label>Date</label><input type="date" id="e-date"></div>
+      <div class="form-group"><label>Location / Notes (optional)</label><input type="text" id="e-loc" placeholder="e.g. The Grand Hotel"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('modal-event')">Cancel</button>
+      <button class="btn btn-gold" onclick="saveEvent()">Save Event</button>
+    </div>
+  </div>
+</div>
+
+<!-- MANAGE ATTENDEES MODAL -->
+<div class="modal-overlay" id="modal-att">
+  <div class="modal">
+    <div class="modal-title" id="ma-title">Manage Attendees</div>
+    <p style="color:var(--muted);font-size:11px;margin-bottom:16px;">Select guests and choose their attendance type. Deselecting a guest removes them from this event.</p>
+    <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;">
+      <input type="text" id="att-search" placeholder="Search guests…" oninput="filterAttList()" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:8px 12px;font-family:'DM Mono',monospace;font-size:12px;outline:none;flex:1;min-width:180px;">
+      <button class="btn btn-outline btn-sm" onclick="selectAllAtt()">Select All</button>
+      <button class="btn btn-outline btn-sm" onclick="clearAllAtt()">Clear All</button>
+    </div>
+    <div id="att-list" style="max-height:380px;overflow-y:auto;border:1px solid var(--border);background:var(--surface2);padding:4px 0;"></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('modal-att')">Cancel</button>
+      <button class="btn btn-gold" onclick="saveAttendees()">Save Attendees</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════
+//  DATA
+// ══════════════════════════════════════
+let D = {
+  guests: [], events: [], attendance: [], // attendance: [{id, eventId, guestId, type:'F2F'|'Zoom'}]
+  nextGid:1, nextEid:1, nextAid:1,
+  categories:[
+    {name:'Gala',color:'#c9a84c'},{name:'Networking',color:'#4c8ec9'},
+    {name:'Workshop',color:'#4caf7d'},{name:'Dinner',color:'#c94c4c'},{name:'Conference',color:'#b48cc8'}
+  ]
+};
+let eGid=null, eEid=null, attEid=null;
+
+function persist(){ try{localStorage.setItem('iiq1',JSON.stringify(D));}catch(e){} }
+function hydrate(){ try{ const s=localStorage.getItem('iiq1'); if(s) D=Object.assign({},D,JSON.parse(s)); }catch(e){} }
+
+// ══════════════════════════════════════
+//  HELPERS
+// ══════════════════════════════════════
+function fd(d){ if(!d)return'—'; return new Date(d+'T00:00:00').toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}); }
+function daysSince(dateStr){
+  if(!dateStr) return Infinity;
+  return Math.floor((Date.now()-new Date(dateStr+'T00:00:00'))/86400000);
+}
+function calcAge(dobMonth, dobYear){
+  if(!dobMonth || !dobYear) return null;
+  const now=new Date();
+  let age=now.getFullYear()-parseInt(dobYear);
+  // If we haven't reached their birth month yet this year, subtract 1
+  if((now.getMonth()+1) < parseInt(dobMonth)) age--;
+  return age;
+}
+function fmtDob(dobMonth, dobYear){
+  if(!dobMonth || !dobYear) return '—';
+  const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return months[parseInt(dobMonth)-1]+' '+dobYear;
+}
+function catStyle(name){
+  const c=D.categories.find(x=>x.name===name); if(!c)return'';
+  const h=c.color,r=parseInt(h.slice(1,3),16),g=parseInt(h.slice(3,5),16),b=parseInt(h.slice(5,7),16);
+  return `background:rgba(${r},${g},${b},0.15);color:${h};border:1px solid rgba(${r},${g},${b},0.3);`;
+}
+function catTag(name){ return `<span class="tag" style="${catStyle(name)}">${name}</span>`; }
+
+// attendance helpers
+function eventAttendees(eid){ return D.attendance.filter(a=>a.eventId===eid); }
+function guestAttendance(gid){ return D.attendance.filter(a=>a.guestId===gid); }
+function guestCategoryAttendance(gid, catName, type=''){
+  const evIds=D.events.filter(e=>e.category===catName).map(e=>e.id);
+  let recs=D.attendance.filter(a=>a.guestId===gid && evIds.includes(a.eventId));
+  if(type) recs=recs.filter(a=>a.type===type);
+  return recs;
+}
+function lastCategoryDate(gid, catName, type=''){
+  const recs=guestCategoryAttendance(gid,catName,type);
+  if(!recs.length) return null;
+  const dates=recs.map(a=>{ const e=D.events.find(x=>x.id===a.eventId); return e?e.date:''; }).filter(Boolean);
+  if(!dates.length) return null;
+  return dates.sort().reverse()[0];
+}
+function totalAttCount(gid){ return D.attendance.filter(a=>a.guestId===gid).length; }
+function lastAttDate(gid){
+  const recs=D.attendance.filter(a=>a.guestId===gid);
+  if(!recs.length) return null;
+  const dates=recs.map(a=>{ const e=D.events.find(x=>x.id===a.eventId); return e?e.date:''; }).filter(Boolean);
+  return dates.length ? dates.sort().reverse()[0] : null;
+}
+
+function fmtDaysSince(days){
+  if(days===Infinity) return `<span class="days-badge days-never">Never attended</span>`;
+  if(days<365){
+    return `<span class="days-badge ${days>=90?'days-mid':'days-recent'}">${days}d</span>`;
+  }
+  const yrs=Math.floor(days/365);
+  const rem=days-(yrs*365);
+  const label=rem>0?`${yrs}y ${rem}d`:`${yrs}y`;
+  return `<span class="days-badge days-long">${label}</span>`;
+}
+function daysBadge(days){ return fmtDaysSince(days); }
+
+// ══════════════════════════════════════
+//  TABS
+// ══════════════════════════════════════
+const tabRenders={dashboard:renderDash,guests:renderGuests,events:renderEvents,invite:renderInviteList,settings:renderSettings};
+function showTab(name,el){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('panel-'+name).classList.add('active');
+  if(el) el.classList.add('active');
+  tabRenders[name]();
+}
+
+// ══════════════════════════════════════
+//  DASHBOARD
+// ══════════════════════════════════════
+function renderDash(){
+  const tg=D.guests.length, te=D.events.length;
+  const ta=D.attendance.length;
+  const cats=D.categories.length;
+  document.getElementById('stats-row').innerHTML=`
+    <div class="stat-box"><div class="stat-num">${tg}</div><div class="stat-label">Total Guests</div></div>
+    <div class="stat-box"><div class="stat-num">${te}</div><div class="stat-label">Events</div></div>
+    <div class="stat-box"><div class="stat-num">${ta}</div><div class="stat-label">Attendance Records</div></div>
+    <div class="stat-box"><div class="stat-num">${cats}</div><div class="stat-label">Categories</div></div>`;
+
+  // Most overdue: guests 16+ sorted by days since ANY attendance
+  const eligible=D.guests.filter(g=>!g.archived && (calcAge(g.dobMonth,g.dobYear)??0) >= 16);
+  const ranked=[...eligible].sort((a,b)=>{
+    const da=lastAttDate(a.id), db=lastAttDate(b.id);
+    if(!da && !db) return 0;
+    if(!da) return -1;
+    if(!db) return 1;
+    return new Date(da)-new Date(db);
+  }).slice(0,6);
+  document.getElementById('dash-overdue').innerHTML=ranked.length?ranked.map((g,i)=>{
+    const ld=lastAttDate(g.id);
+    const ds=ld?daysSince(ld):Infinity;
+    const age=calcAge(g.dobMonth,g.dobYear);
+    return `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);">
+      <div><span class="link" onclick="showHistory(${g.id})">${g.firstName} ${g.lastName}</span><span style="color:var(--muted);font-size:10px;margin-left:8px;">${age!==null?'Age '+age:''}</span></div>
+      ${daysBadge(ds)}
+    </div>`;
+  }).join(''):'<div class="empty">No eligible guests</div>';
+
+  const rec=[...D.events].sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,6);
+  document.getElementById('dash-recent').innerHTML=rec.length?rec.map(e=>{
+    const cnt=eventAttendees(e.id).length;
+    return `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);">
+      <div><div style="font-size:12px;">${e.name}</div><div style="color:var(--muted);font-size:10px;">${fd(e.date)} · ${cnt} attendee${cnt!==1?'s':''}</div></div>
+      ${catTag(e.category)}
+    </div>`;
+  }).join(''):'<div class="empty">No events yet</div>';
+}
+
+// ══════════════════════════════════════
+//  GUESTS
+// ══════════════════════════════════════
+let guestSort = {col:'name', dir:1};
+let showArchived = false;
+
+function toggleShowArchived(){
+  showArchived=!showArchived;
+  const btn=document.getElementById('gf-archived-btn');
+  if(btn){ btn.textContent=showArchived?'Archived ✕':'Archived'; btn.style.borderColor=showArchived?'var(--gold)':''; btn.style.color=showArchived?'var(--gold)':''; }
+  renderGuests();
+}
+
+function archiveGuest(id){
+  const g=D.guests.find(x=>x.id===id); if(!g) return;
+  g.archived=!g.archived;
+  persist(); renderGuests();
+}
+
+function setGuestSort(col){
+  if(guestSort.col===col){ guestSort.dir*=-1; }
+  else { guestSort.col=col; guestSort.dir=(col==='age'||col==='last')?1:-1; }
+  const hdrs={name:'gh-name',age:'gh-age',last:'gh-last'};
+  Object.entries(hdrs).forEach(([c,id])=>{
+    const el=document.getElementById(id); if(!el)return;
+    const active=guestSort.col===c;
+    el.style.color=active?'var(--gold)':'var(--muted)';
+    const labels={name:'Name',age:'Age',last:'Last Attended'};
+    el.textContent=labels[c]+' '+(active?(guestSort.dir===1?'↑':'↓'):'↕');
+  });
+  renderGuests();
+}
+
+function renderGuests(){
+  const tbody=document.getElementById('guest-tbody'),empty=document.getElementById('guest-empty');
+  if(!D.guests.length){tbody.innerHTML='';empty.style.display='';empty.textContent='No guests yet. Add your first guest above.';return;}
+
+  const fSearch=(document.getElementById('gf-search')?.value||'').toLowerCase().trim();
+  const fAgeMin=document.getElementById('gf-age-min')?.value;
+  const fAgeMax=document.getElementById('gf-age-max')?.value;
+  const fLast=(document.getElementById('gf-last')||{}).value||'';
+  const fEvMin=document.getElementById('gf-ev-min')?.value;
+  const fMarital=document.getElementById('gf-marital')?.value||'';
+
+  let guests=[...D.guests];
+
+  // Archived filter — only show archived if toggled on
+  if(!showArchived) guests=guests.filter(g=>!g.archived);
+  else guests=guests.filter(g=>g.archived); // when toggled, show ONLY archived
+
+  // Search
+  if(fSearch) guests=guests.filter(g=>`${g.firstName} ${g.lastName}`.toLowerCase().includes(fSearch)||(g.email||'').toLowerCase().includes(fSearch));
+
+  // Filters
+  if(fAgeMin!==''&&fAgeMin!=null) guests=guests.filter(g=>{const a=calcAge(g.dobMonth,g.dobYear);return a!==null&&a>=parseInt(fAgeMin);});
+  if(fAgeMax!==''&&fAgeMax!=null) guests=guests.filter(g=>{const a=calcAge(g.dobMonth,g.dobYear);return a!==null&&a<=parseInt(fAgeMax);});
+  if(fLast==='never') guests=guests.filter(g=>!lastAttDate(g.id));
+  else if(fLast==='365+') guests=guests.filter(g=>{const ld=lastAttDate(g.id);return ld&&daysSince(ld)>365;});
+  else if(fLast){const days=parseInt(fLast);guests=guests.filter(g=>{const ld=lastAttDate(g.id);return ld&&daysSince(ld)<=days;});}
+  if(fEvMin!==''&&fEvMin!=null) guests=guests.filter(g=>totalAttCount(g.id)>=parseInt(fEvMin));
+  if(fMarital==='unset') guests=guests.filter(g=>!g.marital);
+  else if(fMarital) guests=guests.filter(g=>g.marital===fMarital);
+
+  // Sort
+  guests.sort((a,b)=>{
+    if(guestSort.col==='age'){
+      const aa=calcAge(a.dobMonth,a.dobYear)??-1, ba=calcAge(b.dobMonth,b.dobYear)??-1;
+      return (aa-ba)*guestSort.dir;
+    }
+    if(guestSort.col==='last'){
+      const la=lastAttDate(a.id), lb=lastAttDate(b.id);
+      if(!la&&!lb) return 0;
+      if(!la) return 1;
+      if(!lb) return -1;
+      return (la<lb?-1:la>lb?1:0)*guestSort.dir;
+    }
+    const n=a.firstName.localeCompare(b.firstName)||a.lastName.localeCompare(b.lastName);
+    return n*guestSort.dir;
+  });
+
+  const total_active=D.guests.filter(g=>!g.archived).length;
+  const total_archived=D.guests.filter(g=>g.archived).length;
+  const countEl=document.getElementById('gf-count');
+  if(countEl) countEl.textContent=showArchived
+    ? `${guests.length} archived guest${guests.length!==1?'s':''} · ${total_active} active`
+    : `${guests.length} of ${total_active} active guest${total_active!==1?'s':''}${total_archived>0?' · '+total_archived+' archived':''}`;
+
+  if(!guests.length){
+    tbody.innerHTML='';empty.style.display='';
+    empty.textContent=showArchived?'No archived guests.':'No guests match your filters.';
+    return;
+  }
+  empty.style.display='none';
+
+  tbody.innerHTML=guests.map(g=>{
+    const age=calcAge(g.dobMonth,g.dobYear);
+    const total=totalAttCount(g.id);
+    const ld=lastAttDate(g.id);
+    const noteSnippet=g.notes?`<span style="color:var(--muted);font-size:11px;">${g.notes.length>40?g.notes.slice(0,40)+'…':g.notes}</span>`:'—';
+    const isArchived=!!g.archived;
+    return `<tr style="${isArchived?'opacity:0.55;':''}">
+      <td>
+        <span class="link" onclick="showHistory(${g.id})">${g.firstName} ${g.lastName}</span>
+        ${isArchived?`<span style="font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-left:8px;border:1px solid var(--border);padding:2px 6px;">Archived</span>`:''}
+      </td>
+      <td>${fmtDob(g.dobMonth,g.dobYear)}</td>
+      <td>${age!==null?age:'—'}</td>
+      <td>${g.email||'—'}</td>
+      <td>${g.marital?`<span style="font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:3px 8px;border-radius:1px;${g.marital==='Married'?'background:rgba(155,127,212,0.15);color:#b48cc8;border:1px solid rgba(155,127,212,0.3);':'background:rgba(76,142,201,0.15);color:var(--blue);border:1px solid rgba(76,142,201,0.3);'}">${g.marital}</span>`:'<span style="color:var(--muted)">—</span>'}</td>
+      <td>${(g.categories||[]).map(catTag).join('')||'<span style="color:var(--muted)">None</span>'}</td>
+      <td style="color:var(--gold)">${total}</td>
+      <td>${ld?fd(ld):'<span style="color:var(--muted)">Never</span>'}</td>
+      <td style="max-width:160px;">${noteSnippet}</td>
+      <td style="white-space:nowrap;">
+        <button class="btn btn-outline btn-sm" onclick="editGuest(${g.id})">Edit</button>
+        <button class="btn btn-outline btn-sm" onclick="archiveGuest(${g.id})" title="${isArchived?'Restore guest':'Archive guest'}">${isArchived?'Restore':'Archive'}</button>
+        <button class="btn btn-danger btn-sm" onclick="delGuest(${g.id})">Del</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function clearGuestFilters(){
+  ['gf-age-min','gf-age-max','gf-ev-min','gf-search'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});
+  ['gf-last','gf-marital'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});
+  showArchived=false;
+  const ab=document.getElementById('gf-archived-btn');
+  if(ab){ab.textContent='Archived';ab.style.borderColor='';ab.style.color='';}
+  guestSort={col:'name',dir:1};
+  const nh=document.getElementById('gh-name'),ah=document.getElementById('gh-age'),lh=document.getElementById('gh-last');
+  if(nh){nh.textContent='Name ↕';nh.style.color='var(--muted)';}
+  if(ah){ah.textContent='Age ↕';ah.style.color='var(--muted)';}
+  if(lh){lh.textContent='Last Attended ↕';lh.style.color='var(--muted)';}
+  renderGuests();
+}
+
+function openAddGuest(){
+  eGid=null;
+  document.getElementById('mg-title').textContent='Add Guest';
+  ['g-fn','g-ln','g-dob-year','g-email'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('g-dob-month').value='';
+  document.getElementById('g-marital').value='';
+  document.getElementById('g-notes').value='';
+  buildCatCBs('g-cats',[]);
+  openModal('modal-guest');
+}
+function editGuest(id){
+  const g=D.guests.find(x=>x.id===id);if(!g)return;
+  eGid=id;
+  document.getElementById('mg-title').textContent='Edit Guest';
+  document.getElementById('g-fn').value=g.firstName;
+  document.getElementById('g-ln').value=g.lastName;
+  document.getElementById('g-dob-month').value=g.dobMonth||'';
+  document.getElementById('g-dob-year').value=g.dobYear||'';
+  document.getElementById('g-email').value=g.email||'';
+  document.getElementById('g-marital').value=g.marital||'';
+  document.getElementById('g-notes').value=g.notes||'';
+  buildCatCBs('g-cats',g.categories||[]);
+  openModal('modal-guest');
+}
+function buildCatCBs(cid,sel){
+  document.getElementById(cid).innerHTML=D.categories.map(c=>{
+    const on=sel.includes(c.name);
+    const h=c.color,r=parseInt(h.slice(1,3),16),gv=parseInt(h.slice(3,5),16),b=parseInt(h.slice(5,7),16);
+    const st=on?`border-color:${h};background:rgba(${r},${gv},${b},0.15);color:${h};`:'border:1px solid var(--border);color:var(--muted);';
+    return `<label style="display:inline-flex;align-items:center;gap:6px;padding:6px 11px;cursor:pointer;user-select:none;font-size:11px;letter-spacing:1px;text-transform:uppercase;${st}" data-v="${c.name}" data-col="${h}" onclick="toggleCB(this)"><input type="checkbox" style="display:none;">${c.name}</label>`;
+  }).join('');
+}
+function toggleCB(el){
+  const on=el.style.borderColor&&el.style.borderColor!=='';
+  const h=el.getAttribute('data-col'),r=parseInt(h.slice(1,3),16),g=parseInt(h.slice(3,5),16),b=parseInt(h.slice(5,7),16);
+  if(on){el.style.cssText=`border:1px solid var(--border);color:var(--muted);display:inline-flex;align-items:center;gap:6px;padding:6px 11px;cursor:pointer;user-select:none;font-size:11px;letter-spacing:1px;text-transform:uppercase;`;}
+  else{el.style.borderColor=h;el.style.background=`rgba(${r},${g},${b},0.15)`;el.style.color=h;}
+  el.classList.toggle('_checked');
+}
+function saveGuest(){
+  const fn=document.getElementById('g-fn').value.trim(),ln=document.getElementById('g-ln').value.trim();
+  if(!fn||!ln){alert('Please enter first and last name.');return;}
+  const cats=[...document.querySelectorAll('#g-cats label._checked')].map(el=>el.getAttribute('data-v'));
+  const obj={
+    firstName:fn, lastName:ln,
+    dobMonth:document.getElementById('g-dob-month').value,
+    dobYear:document.getElementById('g-dob-year').value,
+    email:document.getElementById('g-email').value.trim(),
+    marital:document.getElementById('g-marital').value,
+    notes:document.getElementById('g-notes').value.trim(),
+    categories:cats
+  };
+  if(eGid){ Object.assign(D.guests.find(x=>x.id===eGid),obj); }
+  else { D.guests.push({id:D.nextGid++,...obj}); }
+  persist();closeModal('modal-guest');renderGuests();
+}
+function delGuest(id){
+  if(!confirm('Remove this guest and all their attendance records?'))return;
+  D.guests=D.guests.filter(g=>g.id!==id);
+  D.attendance=D.attendance.filter(a=>a.guestId!==id);
+  persist();renderGuests();
+}
+
+// History modal
+function showHistory(gid){
+  const g=D.guests.find(x=>x.id===gid);if(!g)return;
+  document.getElementById('mh-title').textContent=g.firstName+' '+g.lastName+' — Attendance History';
+  const recs=D.attendance.filter(a=>a.guestId===gid);
+  let html='';
+  if(g.notes) html+=`<div style="background:var(--surface2);border:1px solid var(--border);padding:12px 14px;margin-bottom:16px;font-size:12px;line-height:1.7;color:var(--muted);"><strong style="color:var(--text);">Notes:</strong> ${g.notes}</div>`;
+  if(!recs.length){
+    html+='<div class="empty">No attendance records yet.</div>';
+  } else {
+    const rows=[...recs].map(a=>{
+      const ev=D.events.find(x=>x.id===a.eventId);
+      return {date:ev?ev.date:'',name:ev?ev.name:'Unknown event',cat:ev?ev.category:'',type:a.type};
+    }).sort((a,b)=>b.date.localeCompare(a.date));
+    html+=`<table style="width:100%;"><thead><tr><th>Date</th><th>Event</th><th>Category</th><th>Type</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${fd(r.date)}</td><td>${r.name}</td><td>${catTag(r.cat)}</td><td><span class="tag ${r.type==='F2F'?'tag-f2f':'tag-zoom'}">${r.type}</span></td></tr>`).join('')}</tbody></table>`;
+  }
+  document.getElementById('mh-body').innerHTML=html;
+  openModal('modal-history');
+}
+
+// ══════════════════════════════════════
+//  EVENTS
+// ══════════════════════════════════════
+let eventSortAsc = false;
+
+function buildEvCatButtons(){
+  const wrap=document.getElementById('ev-cat-btns'); if(!wrap) return;
+  const current=getEvCats();
+  wrap.innerHTML=D.categories.map(c=>{
+    const on=current.includes(c.name);
+    const h=c.color,r=parseInt(h.slice(1,3),16),g=parseInt(h.slice(3,5),16),b=parseInt(h.slice(5,7),16);
+    return `<button class="inv-type-btn${on?' active':''}" data-ecat="${c.name}" data-col="${h}" onclick="toggleEvCat(this)" style="${on?`border-color:${h};background:rgba(${r},${g},${b},0.15);color:${h};`:''}">${c.name}</button>`;
+  }).join('');
+}
+
+function toggleEvCat(btn){
+  const h=btn.getAttribute('data-col');
+  const r=parseInt(h.slice(1,3),16),g=parseInt(h.slice(3,5),16),b=parseInt(h.slice(5,7),16);
+  if(btn.classList.contains('active')){btn.classList.remove('active');btn.style.cssText='';}
+  else{btn.classList.add('active');btn.style.borderColor=h;btn.style.background=`rgba(${r},${g},${b},0.15)`;btn.style.color=h;}
+  renderEvents();
+}
+
+function getEvCats(){
+  return [...document.querySelectorAll('#ev-cat-btns .inv-type-btn.active')].map(b=>b.getAttribute('data-ecat'));
+}
+
+function clearEventFilters(){
+  document.querySelectorAll('#ev-cat-btns .inv-type-btn').forEach(b=>{b.classList.remove('active');b.style.cssText='';});
+  renderEvents();
+}
+
+function renderEvents(){
+  buildEvCatButtons();
+  const tbody=document.getElementById('event-tbody'),empty=document.getElementById('event-empty');
+  if(!D.events.length){tbody.innerHTML='';empty.style.display='';empty.textContent='No events yet.';return;}
+
+  const filterCats=getEvCats();
+  let events=[...D.events];
+  if(filterCats.length) events=events.filter(e=>filterCats.includes(e.category));
+
+  events.sort((a,b)=>{const cmp=a.date.localeCompare(b.date);return eventSortAsc?cmp:-cmp;});
+
+  const dateHdr=document.getElementById('event-date-hdr');
+  if(dateHdr) dateHdr.textContent='Date '+(eventSortAsc?'↑':'↓');
+
+  const countEl=document.getElementById('ev-count');
+  if(countEl) countEl.textContent=filterCats.length?events.length+' of '+D.events.length+' event'+(D.events.length!==1?'s':''):'';
+
+  if(!events.length){tbody.innerHTML='';empty.style.display='';empty.textContent='No events match your filter.';return;}
+  empty.style.display='none';
+
+  tbody.innerHTML=events.map(e=>{
+    const atts=eventAttendees(e.id);
+    const f2f=atts.filter(a=>a.type==='F2F').length;
+    const zoom=atts.filter(a=>a.type==='Zoom').length;
+
+    // Build attendee rows for the expandable section
+    const attRows=atts.length===0
+      ? `<tr id="attlist-${e.id}" style="display:none;"><td colspan="7"><div class="empty" style="padding:18px;">No attendees recorded for this event.</div></td></tr>`
+      : `<tr id="attlist-${e.id}" style="display:none;">
+          <td colspan="7" style="padding:0;background:var(--surface2);">
+            <div style="padding:14px 18px;">
+              <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;">Attendees (${atts.length})</div>
+              <div style="display:flex;flex-wrap:wrap;gap:8px;">
+                ${atts.map(a=>{
+                  const g=D.guests.find(x=>x.id===a.guestId);
+                  if(!g) return '';
+                  const age=calcAge(g.dobMonth,g.dobYear);
+                  return `<div style="display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);padding:7px 12px;min-width:180px;flex:1 0 180px;max-width:280px;">
+                    <div style="flex:1;">
+                      <div style="font-size:12px;cursor:pointer;color:var(--gold);text-decoration:underline;text-decoration-color:rgba(201,168,76,0.4);" onclick="showHistory(${g.id})">${g.firstName} ${g.lastName}</div>
+                      ${age!==null?`<div style="color:var(--muted);font-size:10px;">Age ${age}</div>`:''}
+                    </div>
+                    <span class="tag ${a.type==='F2F'?'tag-f2f':'tag-zoom'}">${a.type}</span>
+                  </div>`;
+                }).join('')}
+              </div>
+            </div>
+          </td>
+        </tr>`;
+
+    return `<tr style="cursor:pointer;" onclick="toggleAttList(${e.id}, this)">
+      <td><strong>${e.name}</strong>${e.location?`<br><span style="color:var(--muted);font-size:10px;">${e.location}</span>`:''}</td>
+      <td>${catTag(e.category)}</td>
+      <td>${fd(e.date)}</td>
+      <td style="color:var(--gold)">${atts.length}</td>
+      <td>${f2f>0?`<span class="tag tag-f2f">${f2f}</span>`:'—'}</td>
+      <td>${zoom>0?`<span class="tag tag-zoom">${zoom}</span>`:'—'}</td>
+      <td style="white-space:nowrap;" onclick="event.stopPropagation()">
+        <span id="attlist-arrow-${e.id}" style="color:var(--muted);font-size:11px;margin-right:6px;user-select:none;">▶</span>
+        <button class="btn btn-outline btn-sm" onclick="openManageAtt(${e.id})">Attendees</button>
+        <button class="btn btn-outline btn-sm" onclick="openEditEvent(${e.id})">Edit</button>
+        <button class="btn btn-danger btn-sm" onclick="delEvent(${e.id})">Del</button>
+      </td>
+    </tr>
+    ${attRows}`;
+  }).join('');
+}
+
+function toggleAttList(eid, row){
+  const list=document.getElementById('attlist-'+eid);
+  const arrow=document.getElementById('attlist-arrow-'+eid);
+  if(!list) return;
+  const open=list.style.display!=='none';
+  list.style.display=open?'none':'table-row';
+  if(arrow) arrow.textContent=open?'▶':'▼';
+  if(row) row.style.background=open?'':'rgba(201,168,76,0.03)';
+}
+
+function openCreateEvent(){
+  eEid=null;
+  document.getElementById('me-title').textContent='Create Event';
+  document.getElementById('e-name').value='';
+  document.getElementById('e-loc').value='';
+  document.getElementById('e-date').value=new Date().toISOString().split('T')[0];
+  document.getElementById('e-cat').innerHTML=D.categories.map(c=>`<option value="${c.name}">${c.name}</option>`).join('');
+  openModal('modal-event');
+}
+function openEditEvent(id){
+  const e=D.events.find(x=>x.id===id);if(!e)return;
+  eEid=id;
+  document.getElementById('me-title').textContent='Edit Event';
+  document.getElementById('e-name').value=e.name;
+  document.getElementById('e-loc').value=e.location||'';
+  document.getElementById('e-date').value=e.date;
+  document.getElementById('e-cat').innerHTML=D.categories.map(c=>`<option value="${c.name}"${c.name===e.category?' selected':''}>${c.name}</option>`).join('');
+  openModal('modal-event');
+}
+function saveEvent(){
+  const name=document.getElementById('e-name').value.trim();
+  if(!name){alert('Please enter an event name.');return;}
+  const obj={name,category:document.getElementById('e-cat').value,date:document.getElementById('e-date').value,location:document.getElementById('e-loc').value.trim()};
+  if(eEid){ Object.assign(D.events.find(x=>x.id===eEid),obj); }
+  else { D.events.push({id:D.nextEid++,...obj}); }
+  persist();closeModal('modal-event');renderEvents();
+}
+function delEvent(id){
+  if(!confirm('Delete this event and all attendance records for it?'))return;
+  D.events=D.events.filter(e=>e.id!==id);
+  D.attendance=D.attendance.filter(a=>a.eventId!==id);
+  persist();renderEvents();
+}
+
+// ── MANAGE ATTENDEES ──
+// attSelections: Map of guestId -> 'F2F'|'Zoom'|null (null = unchecked)
+let attSelections = new Map();
+
+function openManageAtt(eid){
+  attEid=eid;
+  const e=D.events.find(x=>x.id===eid);
+  document.getElementById('ma-title').textContent='Attendees — '+e.name;
+  document.getElementById('att-search').value='';
+  // Seed selections from existing saved attendance
+  attSelections=new Map();
+  eventAttendees(attEid).forEach(a=>attSelections.set(a.guestId, a.type));
+  renderAttList('');
+  openModal('modal-att');
+}
+
+function snapshotAttList(){
+  // Save current visible checkboxes into attSelections before re-rendering
+  document.querySelectorAll('#att-list input[type="checkbox"]').forEach(cb=>{
+    const gid=parseInt(cb.id.replace('ach-',''));
+    if(cb.checked){
+      const sel=document.getElementById('atype-'+gid);
+      attSelections.set(gid, sel?sel.value:'F2F');
+    } else {
+      attSelections.delete(gid);
+    }
+  });
+}
+
+function renderAttList(q){
+  const guests=[...D.guests].sort((a,b)=>a.firstName.localeCompare(b.firstName));
+  const filtered=q?guests.filter(g=>(g.firstName+' '+g.lastName).toLowerCase().includes(q.toLowerCase())):guests;
+  if(!filtered.length){document.getElementById('att-list').innerHTML='<div class="empty">No guests found.</div>';return;}
+  document.getElementById('att-list').innerHTML=filtered.map(g=>{
+    const checked=attSelections.has(g.id);
+    const type=attSelections.get(g.id)||'F2F';
+    const age=calcAge(g.dobMonth,g.dobYear);
+    return `<div style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid var(--border);cursor:pointer;" onclick="toggleAttRow(event,${g.id})">
+      <input type="checkbox" id="ach-${g.id}" ${checked?'checked':''} style="accent-color:var(--gold);width:15px;height:15px;cursor:pointer;flex-shrink:0;pointer-events:none;">
+      <span style="flex:1;font-size:12px;">${g.firstName} ${g.lastName} ${age!==null?`<span style="color:var(--muted);font-size:10px;">Age ${age}</span>`:''}</span>
+      <select id="atype-${g.id}" onclick="event.stopPropagation()" onchange="attSelections.set(${g.id},this.value)" style="background:var(--surface);border:1px solid var(--border);color:var(--text);padding:5px 8px;font-family:'DM Mono',monospace;font-size:11px;outline:none;${!checked?'opacity:0.35;pointer-events:none;':''}">
+        <option value="F2F" ${type==='F2F'?'selected':''}>F2F</option>
+        <option value="Zoom" ${type==='Zoom'?'selected':''}>Zoom</option>
+      </select>
+    </div>`;
+  }).join('');
+}
+
+function toggleAttRow(event, gid){
+  if(event.target.tagName==='SELECT'||event.target.tagName==='OPTION') return;
+  const cb=document.getElementById('ach-'+gid);
+  cb.checked=!cb.checked;
+  const sel=document.getElementById('atype-'+gid);
+  if(cb.checked){
+    attSelections.set(gid, sel?sel.value:'F2F');
+    if(sel){sel.style.opacity='1';sel.style.pointerEvents='auto';}
+  } else {
+    attSelections.delete(gid);
+    if(sel){sel.style.opacity='0.35';sel.style.pointerEvents='none';}
+  }
+}
+
+function filterAttList(){
+  snapshotAttList(); // save current visible state before re-render
+  renderAttList(document.getElementById('att-search').value);
+}
+
+function selectAllAtt(){
+  // Mark all guests (not just visible) as selected
+  D.guests.forEach(g=>{ if(!attSelections.has(g.id)) attSelections.set(g.id,'F2F'); });
+  renderAttList(document.getElementById('att-search').value);
+}
+
+function clearAllAtt(){
+  attSelections.clear();
+  renderAttList(document.getElementById('att-search').value);
+}
+
+function saveAttendees(){
+  snapshotAttList(); // capture any final visible state
+  D.attendance=D.attendance.filter(a=>a.eventId!==attEid);
+  attSelections.forEach((type,gid)=>{
+    D.attendance.push({id:D.nextAid++,eventId:attEid,guestId:gid,type});
+  });
+  persist();closeModal('modal-att');renderEvents();
+}
+
+// ══════════════════════════════════════
+//  INVITE PLANNER
+// ══════════════════════════════════════
+function toggleInvType(val){
+  const btn=document.querySelector(`#inv-type-btns .inv-type-btn[data-val="${val}"]`);
+  if(!btn) return;
+  const active=document.querySelectorAll('#inv-type-btns .inv-type-btn.active');
+  if(active.length===1 && btn.classList.contains('active')) return;
+  btn.classList.toggle('active');
+  renderInvite();
+}
+
+function getInvTypes(){
+  return [...document.querySelectorAll('#inv-type-btns .inv-type-btn.active')].map(b=>b.getAttribute('data-val'));
+}
+
+function buildInvCatButtons(){
+  const wrap=document.getElementById('inv-cat-btns');
+  if(!wrap) return;
+  // Preserve current selections
+  const current=getInvCats();
+  wrap.innerHTML=D.categories.map(c=>{
+    const on=current.includes(c.name)||current.length===0; // default all off
+    const h=c.color,r=parseInt(h.slice(1,3),16),g=parseInt(h.slice(3,5),16),b=parseInt(h.slice(5,7),16);
+    const st=on?`border-color:${h};background:rgba(${r},${g},${b},0.15);color:${h};`:'';
+    return `<button class="inv-type-btn${on?' active':''}" data-cat="${c.name}" data-col="${h}" onclick="toggleInvCat(this)" style="${on?`border-color:${h};background:rgba(${r},${g},${b},0.15);color:${h};`:''}">${c.name}</button>`;
+  }).join('');
+}
+
+function toggleInvCat(btn){
+  const h=btn.getAttribute('data-col');
+  const r=parseInt(h.slice(1,3),16),g=parseInt(h.slice(3,5),16),b=parseInt(h.slice(5,7),16);
+  if(btn.classList.contains('active')){
+    btn.classList.remove('active');
+    btn.style.borderColor=''; btn.style.background=''; btn.style.color='';
+  } else {
+    btn.classList.add('active');
+    btn.style.borderColor=h; btn.style.background=`rgba(${r},${g},${b},0.15)`; btn.style.color=h;
+  }
+  renderInvite();
+}
+
+function getInvCats(){
+  return [...document.querySelectorAll('#inv-cat-btns .inv-type-btn.active')].map(b=>b.getAttribute('data-cat'));
+}
+
+function setInvSort(valIfNotActive, valIfActive){
+  const sel=document.getElementById('inv-sort'); if(!sel) return;
+  sel.value=(sel.value===valIfNotActive)?valIfActive:valIfNotActive;
+  renderInvite();
+}
+
+function renderInvite(){
+  const cats=getInvCats(), types=getInvTypes(), topN=parseInt(document.getElementById('inv-n').value);
+  const invSort=document.getElementById('inv-sort')?.value||'overdue';
+  const invAgeMin=document.getElementById('inv-age-min')?.value;
+  const invAgeMax=document.getElementById('inv-age-max')?.value;
+  const invMarital=document.getElementById('inv-marital')?.value||'';
+  const invNever=document.getElementById('inv-never')?.value||'';
+  const prompt=document.getElementById('invite-prompt');
+  const wrap=document.getElementById('invite-table-wrap');
+  const note=document.getElementById('inv-note');
+
+  if(!cats.length){
+    prompt.style.display=''; prompt.textContent='Select at least one category above to see ranked guests.';
+    wrap.style.display='none'; note.style.display='none';
+    const c=document.getElementById('inv-count'); if(c) c.style.display='none';
+    return;
+  }
+  prompt.style.display='none'; wrap.style.display=''; note.style.display='';
+  const invCountEl=document.getElementById('inv-count'); if(invCountEl) invCountEl.style.display='';
+
+  // Eligible: age >= 16 and not archived
+  let guests=D.guests.filter(g=>!g.archived && (calcAge(g.dobMonth,g.dobYear)??0)>=16);
+
+  // Age filter
+  if(invAgeMin!==''&&invAgeMin!=null) guests=guests.filter(g=>(calcAge(g.dobMonth,g.dobYear)??0)>=parseInt(invAgeMin));
+  if(invAgeMax!==''&&invAgeMax!=null) guests=guests.filter(g=>(calcAge(g.dobMonth,g.dobYear)??999)<=parseInt(invAgeMax));
+
+  // Marital status filter
+  if(invMarital==='unset') guests=guests.filter(g=>!g.marital);
+  else if(invMarital) guests=guests.filter(g=>g.marital===invMarital);
+
+  // Never attended filter (applied after recency data is computed below, flag for post-processing)
+  const neverFilter=invNever;
+
+  // Compute recency data for each guest
+  guests=guests.map(g=>{
+    const evIds=D.events.filter(e=>cats.includes(e.category)).map(e=>e.id);
+    const recs=D.attendance.filter(a=>a.guestId===g.id && evIds.includes(a.eventId) && types.includes(a.type));
+    const dates=recs.map(a=>{const e=D.events.find(x=>x.id===a.eventId);return e?e.date:'';}).filter(Boolean);
+    const ld=dates.length?dates.sort().reverse()[0]:null;
+    const ds=ld?daysSince(ld):Infinity;
+    const age=calcAge(g.dobMonth,g.dobYear);
+    return {...g,_ld:ld,_ds:ds,_age:age,_catTotal:recs.length};
+  });
+
+  // Apply never/attended filter now that _ds and _ld are computed
+  if(neverFilter==='never') guests=guests.filter(g=>!lastAttDate(g.id));
+  else if(neverFilter==='never-cat') guests=guests.filter(g=>g._ds===Infinity);
+  else if(neverFilter==='attended') guests=guests.filter(g=>g._ds!==Infinity);
+  else if(neverFilter==='attended-any') guests=guests.filter(g=>!!lastAttDate(g.id));
+
+  // Sort
+  if(invSort==='age-asc'){
+    guests.sort((a,b)=>(a._age??-1)-(b._age??-1));
+  } else if(invSort==='age-desc'){
+    guests.sort((a,b)=>(b._age??-1)-(a._age??-1));
+  } else if(invSort==='overdue-asc'){
+    // Most recently attended first; never-attended go to end
+    guests.sort((a,b)=>{
+      if(a._ds===Infinity && b._ds===Infinity) return 0;
+      if(a._ds===Infinity) return 1;
+      if(b._ds===Infinity) return -1;
+      return a._ds - b._ds;
+    });
+  } else {
+    // Default: most overdue first, never-attended at top
+    guests.sort((a,b)=>{
+      if(a._ds===Infinity && b._ds===Infinity) return 0;
+      if(a._ds===Infinity) return -1;
+      if(b._ds===Infinity) return 1;
+      return b._ds - a._ds;
+    });
+  }
+
+  if(topN>0) guests=guests.slice(0,topN);
+
+  const tbody=document.getElementById('invite-tbody'),empty=document.getElementById('invite-empty');
+  if(!guests.length){tbody.innerHTML='';empty.style.display='';return;}
+  empty.style.display='none';
+
+  // Count display
+  const countWrap=document.getElementById('inv-count');
+  if(countWrap) countWrap.textContent=`Showing ${guests.length} guest${guests.length!==1?'s':''}`;
+
+  const catLabel=cats.length===D.categories.length?'all categories':cats.join(', ');
+  const typeLabel=types.length===2?'F2F or Zoom':types[0];
+  const sortLabel=invSort==='age-asc'?'youngest first':invSort==='age-desc'?'oldest first':invSort==='overdue-asc'?'fewest days (most recent first)':'most overdue first';
+
+  // Update column header indicators
+  const daysHdr=document.getElementById('ih-days'), ageHdr=document.getElementById('ih-age');
+  if(daysHdr){
+    const daysActive=invSort==='overdue'||invSort==='overdue-asc';
+    daysHdr.style.color=daysActive?'var(--gold)':'var(--muted)';
+    daysHdr.textContent='Days Since '+(daysActive?(invSort==='overdue'?'↓':'↑'):'↕');
+  }
+  if(ageHdr){
+    const ageActive=invSort==='age-asc'||invSort==='age-desc';
+    ageHdr.style.color=ageActive?'var(--gold)':'var(--muted)';
+    ageHdr.textContent='Age '+(ageActive?(invSort==='age-asc'?'↑':'↓'):'↕');
+  }
+
+  tbody.innerHTML=guests.map((g,i)=>{
+    return `<tr class="${i<3&&invSort==='overdue'?'highlight-row':''}">
+      <td><span class="${i===0&&invSort==='overdue'?'rank-num':'rank-num top'}">${i+1}</span></td>
+      <td><span class="link" onclick="showHistory(${g.id})">${g.firstName} ${g.lastName}</span>${g.email?`<br><span style="color:var(--muted);font-size:10px;">${g.email}</span>`:''}</td>
+      <td>${g._age!==null?g._age:'—'}</td>
+      <td>${g._ld?fd(g._ld):'<span style="color:var(--gold);">Never attended</span>'}</td>
+      <td>${daysBadge(g._ds)}</td>
+      <td style="color:var(--muted)">${g._catTotal} event${g._catTotal!==1?'s':''}</td>
+      <td>${(g.categories||[]).map(catTag).join('')||'—'}</td>
+    </tr>`;
+  }).join('');
+
+  note.innerHTML=`<strong>Showing:</strong> Guests aged 16+ · <strong style="color:var(--gold)">${typeLabel}</strong> · <strong style="color:var(--gold)">${catLabel}</strong> · sorted <strong style="color:var(--gold)">${sortLabel}</strong>.`;
+}
+function renderInviteList(){ buildInvCatButtons(); renderInvite(); }
+
+// ══════════════════════════════════════
+//  SETTINGS
+// ══════════════════════════════════════
+function renderSettings(){ renderCatList(); }
+
+function renderCatList(){
+  document.getElementById('cat-list').innerHTML=D.categories.map((c,i)=>`
+    <div class="cat-row">
+      <div class="cat-swatch" style="background:${c.color};"></div>
+      <input class="cat-name-input" type="text" value="${c.name}" onchange="renameCat(${i},this.value)">
+      <input type="color" value="${c.color}" style="width:34px;height:30px;border:1px solid var(--border);background:var(--surface2);padding:2px;cursor:pointer;" onchange="recolorCat(${i},this.value)">
+      <button class="btn btn-danger btn-xs" onclick="delCat(${i})">Remove</button>
+    </div>`).join('');
+}
+function renameCat(i,n){
+  n=n.trim();if(!n)return;
+  const old=D.categories[i].name; D.categories[i].name=n;
+  D.events.forEach(e=>{if(e.category===old)e.category=n;});
+  D.guests.forEach(g=>{g.categories=(g.categories||[]).map(c=>c===old?n:c);});
+  persist();
+}
+function recolorCat(i,col){ D.categories[i].color=col; persist(); renderCatList(); }
+function delCat(i){
+  const n=D.categories[i].name;
+  if(!confirm(`Remove category "${n}"? All events in this category will have their category cleared.`))return;
+  D.categories.splice(i,1);
+  D.events.forEach(e=>{if(e.category===n)e.category='';});
+  D.guests.forEach(g=>{g.categories=(g.categories||[]).filter(c=>c!==n);});
+  persist(); renderCatList();
+}
+function addCat(){
+  const ne=document.getElementById('new-cat-name'),ce=document.getElementById('new-cat-color');
+  const n=ne.value.trim(); if(!n){alert('Please enter a name.');return;}
+  if(D.categories.find(c=>c.name.toLowerCase()===n.toLowerCase())){alert('Category already exists.');return;}
+  D.categories.push({name:n,color:ce.value}); ne.value=''; ce.value='#c9a84c';
+  persist(); renderCatList();
+}
+
+// ══════════════════════════════════════
+//  MODAL UTILS
+// ══════════════════════════════════════
+function openModal(id){ document.getElementById(id).classList.add('open'); }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');}));
+
+// ══════════════════════════════════════
+//  SEED + INIT
+// ══════════════════════════════════════
+function seed(){
+  if(D.guests.length)return;
+  const gs=[
+    {fn:'Margaret',ln:'Hughes',dobMonth:3,dobYear:1957,email:'',cats:['Gala','Dinner']},
+    {fn:'James',ln:'Thornton',dobMonth:9,dobYear:1972,email:'',cats:['Networking','Conference']},
+    {fn:'Clara',ln:'Vasquez',dobMonth:6,dobYear:1986,email:'',cats:['Workshop','Networking']},
+    {fn:'Robert',ln:'Ainsworth',dobMonth:1,dobYear:1953,email:'',cats:['Gala','Dinner','Conference']},
+    {fn:'Priya',ln:'Sharma',dobMonth:11,dobYear:1979,email:'',cats:['Workshop']},
+    {fn:'Tom',ln:'Ellery',dobMonth:5,dobYear:2010,email:'',cats:['Workshop']}, // under 16 - excluded from planner
+  ];
+  gs.forEach(g=>D.guests.push({id:D.nextGid++,firstName:g.fn,lastName:g.ln,dobMonth:g.dobMonth,dobYear:g.dobYear,email:g.email,categories:g.cats}));
+
+  const evs=[
+    {name:'Spring Gala 2024',cat:'Gala',date:'2024-04-15',atts:[{gid:1,t:'F2F'},{gid:4,t:'F2F'}]},
+    {name:'Business Mixer Q3',cat:'Networking',date:'2024-07-20',atts:[{gid:2,t:'F2F'},{gid:3,t:'Zoom'}]},
+    {name:'Annual Dinner 2024',cat:'Dinner',date:'2024-11-02',atts:[{gid:1,t:'F2F'},{gid:2,t:'F2F'},{gid:4,t:'F2F'}]},
+    {name:'Winter Workshop',cat:'Workshop',date:'2025-01-15',atts:[{gid:3,t:'Zoom'},{gid:5,t:'F2F'}]},
+  ];
+  evs.forEach(ev=>{
+    const eid=D.nextEid++;
+    D.events.push({id:eid,name:ev.name,category:ev.cat,date:ev.date,location:''});
+    ev.atts.forEach(a=>D.attendance.push({id:D.nextAid++,eventId:eid,guestId:a.gid,type:a.t}));
+  });
+  persist();
+}
+
+hydrate(); seed(); renderDash();
+</script>
+</body>
+</html>
