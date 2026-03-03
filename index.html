@@ -5,6 +5,52 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>InviteIQ</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<!-- Firebase -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBegfNCyYFn8Y02IW010YCkmvB8VcA_3sU",
+    authDomain: "inviteiq-northam.firebaseapp.com",
+    projectId: "inviteiq-northam",
+    storageBucket: "inviteiq-northam.firebasestorage.app",
+    messagingSenderId: "55277991956",
+    appId: "1:55277991956:web:d47d02870b7cbffb2f4f01"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const REF = doc(db, 'inviteiq', 'data');
+
+  // Expose to global scope for app to use
+  window._fbSave = async (data) => {
+    try { await setDoc(REF, { payload: JSON.stringify(data) }); } catch(e) { console.error('Save failed', e); }
+  };
+
+  window._fbInit = async () => {
+    try {
+      const snap = await getDoc(REF);
+      if (snap.exists()) {
+        const saved = JSON.parse(snap.data().payload);
+        window._applyFirebaseData(saved);
+      } else {
+        window._appReady();
+      }
+    } catch(e) {
+      console.error('Load failed', e);
+      window._appReady();
+    }
+
+    // Live listener — updates UI when data changes from another device
+    onSnapshot(REF, (snap) => {
+      if (snap.exists() && window._fbListening) {
+        const saved = JSON.parse(snap.data().payload);
+        window._applyFirebaseData(saved);
+      }
+    });
+  };
+</script>
 <style>
   :root {
     --bg:#0d0d0d; --surface:#161616; --surface2:#1e1e1e; --border:#2a2a2a;
@@ -105,6 +151,16 @@
   <span>Event Intelligence Platform</span>
 </header>
 
+<div id="loading-overlay" style="position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;gap:16px;">
+  <div style="font-family:'Playfair Display',serif;font-size:28px;color:var(--gold);">InviteIQ</div>
+  <div style="color:var(--muted);font-size:11px;letter-spacing:2px;text-transform:uppercase;">Loading your data…</div>
+  <div style="width:40px;height:2px;background:var(--border);position:relative;overflow:hidden;margin-top:8px;">
+    <div style="position:absolute;height:100%;width:40%;background:var(--gold);animation:loading-bar 1.2s ease-in-out infinite;"></div>
+  </div>
+</div>
+<style>
+@keyframes loading-bar{0%{left:-40%}100%{left:100%}}
+</style>
 <div class="tabs">
   <div class="tab active"  onclick="showTab('dashboard',this)">Dashboard</div>
   <div class="tab" onclick="showTab('guests',this)">Guests</div>
@@ -423,8 +479,32 @@ let D = {
 };
 let eGid=null, eEid=null, attEid=null;
 
-function persist(){ try{localStorage.setItem('iiq1',JSON.stringify(D));}catch(e){} }
-function hydrate(){ try{ const s=localStorage.getItem('iiq1'); if(s) D=Object.assign({},D,JSON.parse(s)); }catch(e){} }
+// ══════════════════════════════════════
+//  FIREBASE PERSISTENCE
+// ══════════════════════════════════════
+window._fbListening = false;
+
+function persist(){
+  if(window._fbSave) window._fbSave(D);
+}
+
+window._applyFirebaseData = function(saved){
+  D = Object.assign({}, D, saved);
+  renderDash(); renderGuests(); renderEvents();
+  if(document.getElementById('panel-invite').classList.contains('active')) renderInviteList();
+  renderSettings();
+  const overlay = document.getElementById('loading-overlay');
+  if(overlay) overlay.style.display='none';
+  window._fbListening = true;
+};
+
+window._appReady = function(){
+  seed();
+  renderDash();
+  const overlay = document.getElementById('loading-overlay');
+  if(overlay) overlay.style.display='none';
+  window._fbListening = true;
+};
 
 // ══════════════════════════════════════
 //  HELPERS
@@ -1277,7 +1357,16 @@ function seed(){
   persist();
 }
 
-hydrate(); seed(); renderDash();
+// Start the app — Firebase module will call _applyFirebaseData or _appReady
+if(window._fbInit){ window._fbInit(); } else {
+  // Fallback if Firebase hasn't loaded yet — poll briefly
+  let _attempts=0;
+  const _wait=setInterval(()=>{
+    _attempts++;
+    if(window._fbInit){ clearInterval(_wait); window._fbInit(); }
+    else if(_attempts>20){ clearInterval(_wait); seed(); renderDash(); document.getElementById('loading-overlay').style.display='none'; }
+  },100);
+}
 </script>
 </body>
 </html>
