@@ -499,11 +499,10 @@ window._applyFirebaseData = function(saved){
 };
 
 window._appReady = function(){
-  seed();
-  renderDash();
   const overlay = document.getElementById('loading-overlay');
   if(overlay) overlay.style.display='none';
   window._fbListening = true;
+  renderDash();
 };
 
 // ══════════════════════════════════════
